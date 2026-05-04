@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Proxy - GitHub Actions</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 Website Proxy Tool</h1>
+            <p>ابزار نمایش آنلاین وب‌سایت‌های خارجی</p>
+        </header>
+
+        <main>
+            <div class="info-box">
+                <h2>📋 راهنمای استفاده</h2>
+                <ol>
+                    <li>به تب <strong>Actions</strong> در بالای صفحه مخزن GitHub بروید</li>
+                    <li>روی <strong>Deploy Website Proxy</strong> کلیک کنید</li>
+                    <li>دکمه <strong>Run workflow</strong> را بزنید</li>
+                    <li>آدرس سایت مورد نظر را وارد کنید (مثال: https://example.com)</li>
+                    <li>منتظر بمانید تا Action اجرا شود (۲-۵ دقیقه)</li>
+                    <li>لینک سایت دیپلوی شده در لاگ نمایش داده می‌شود</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <h3>⚠️ نکات مهم</h3>
+                <ul>
+                    <li>GitHub Pages باید در تنظیمات مخزن فعال باشد (Settings → Pages → gh-pages branch)</li>
+                    <li>برخی سایت‌ها به دلیل CORS یا JavaScript پیچیده ممکن است کامل کار نکنند</li>
+                    <li>فقط محتوای استاتیک (HTML, CSS, JS, تصاویر) دانلود می‌شود</li>
+                    <li>سایت‌های نیازمند احراز هویت پشتیبانی نمی‌شوند</li>
+                </ul>
+            </div>
+
+            <div class="features-box">
+                <h3>✨ قابلیت‌ها</h3>
+                <ul>
+                    <li>دانلود خودکار تمام منابع سایت (HTML, CSS, JS, Images)</li>
+                    <li>تبدیل لینک‌های نسبی به مطلق</li>
+                    <li>دیپلوی خودکار روی GitHub Pages</li>
+                    <li>بدون نیاز به نصب نرم‌افزار</li>
+                    <li>رایگان و متن‌باز</li>
+                </ul>
+            </div>
+
+            <div class="cta-box">
+                <a href="#" class="btn-primary" id="actionsBtn">🚀 شروع کنید - برو به Actions</a>
+                <p style="color: white; margin-top: 15px; font-size: 0.9em;">
+                    لینک Actions: <span id="actionsLink" style="font-family: monospace;">در حال بارگذاری...</span>
+                </p>
+            </div>
+        </main>
+
+        <footer>
+            <p>ساخته شده با GitHub Actions | <a href="https://github.com" target="_blank">مشاهده کد منبع</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
