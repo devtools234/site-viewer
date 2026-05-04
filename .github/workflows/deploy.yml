@@ -1,70 +1,33 @@
-name: Download and Deploy Site
+name: Deploy to GitHub Pages
 
 on:
+  push:
+    branches: ["main"]
   workflow_dispatch:
-    inputs:
-      site_url:
-        description: 'آدرس کامل سایت (مثال: https://example.com)'
-        required: true
-        type: string
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 jobs:
-  download-and-deploy:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download website
-        run: |
-          mkdir -p public
-          
-          # دانلود محدود با تنظیمات بهینه
-          wget \
-            --recursive \
-            --level=2 \
-            --no-parent \
-            --page-requisites \
-            --adjust-extension \
-            --convert-links \
-            --no-host-directories \
-            --restrict-file-names=windows \
-            --reject "*.mp4,*.avi,*.mkv,*.mov,*.wmv,*.flv,*.webm,*.zip,*.rar,*.tar,*.gz,*.7z,*.exe,*.dmg,*.iso" \
-            --quota=500m \
-            --timeout=30 \
-            --tries=2 \
-            --wait=0.5 \
-            --random-wait \
-            --user-agent="Mozilla/5.0" \
-            -P public \
-            "${{ github.event.inputs.site_url }}" || {
-              echo "⚠️ دانلود با خطا مواجه شد"
-              echo "<html><body style='font-family:Tahoma;text-align:center;padding:50px;'>" > public/index.html
-              echo "<h1>❌ خطا در دانلود</h1>" >> public/index.html
-              echo "<p>سایت خیلی بزرگ است یا در دسترس نیست</p>" >> public/index.html
-              echo "<p>آدرس: ${{ github.event.inputs.site_url }}</p>" >> public/index.html
-              echo "</body></html>" >> public/index.html
-            }
-          
-          # نمایش حجم دانلود شده
-          du -sh public/
-          
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'public'
-
+          path: '.'
+      
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Show result
-        run: |
-          echo "✅ دیپلوی موفق بود!"
-          echo "🔗 لینک سایت: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
