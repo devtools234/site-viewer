@@ -1,86 +1,95 @@
-name: Deploy to GitHub Pages
+name: Site Viewer - Download & Publish
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
     inputs:
       site_url:
-        description: 'Website URL to download'
+        description: 'آدرس سایتی که باید دانلود و پابلیش شود'
         required: true
-        type: string
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+        default: 'https://example.com'
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  download-and-publish:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
-      
-      - name: Install HTTrack
-        run: sudo apt-get update && sudo apt-get install -y httrack
-      
-      - name: Download website
+
+      - name: Install wget
+        run: sudo apt-get update && sudo apt-get install -y wget
+
+      - name: Clean previous build
         run: |
+          rm -rf public
           mkdir -p public
-          httrack "${{ github.event.inputs.site_url }}" \
-            -O public \
-            --depth=2 \
-            --max-rate=0 \
-            --connection-per-second=5 \
-            --timeout=60 \
-            --retries=3 \
-            --keep-alive \
-            --robots=0 \
-            --quiet
-        continue-on-error: true
-      
-      - name: Create fallback page if download failed
-        if: failure()
+
+      - name: Download site with wget
         run: |
-          mkdir -p public
-          cat > public/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="fa" dir="rtl">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>خطا در دانلود</title>
-              <style>
-                  body { font-family: Tahoma; text-align: center; padding: 50px; background: #f5f5f5; }
-                  .error { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                  h1 { color: #e74c3c; }
-              </style>
-          </head>
-          <body>
-              <div class="error">
-                  <h1>⚠️ خطا در دانلود سایت</h1>
-                  <p>لطفاً آدرس را بررسی کنید و دوباره تلاش کنید.</p>
-              </div>
-          </body>
-          </html>
-          EOF
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'public'
-      
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          cd public
+          wget \
+            --mirror \
+            --convert-links \
+            --adjust-extension \
+            --page-requisites \
+            --no-parent \
+            "${{ github.event.inputs.site_url }}"
+        # توضیح:
+        # --mirror           : مثل mirror کامل سایت
+        # --convert-links    : تبدیل لینک‌ها به لینک‌های لوکال
+        # --adjust-extension : تنظیم پسوند فایل‌ها (مثلاً .html)
+        # --page-requisites  : دانلود css/js/img لازم
+        # --no-parent        : بالاتر از مسیر URL رو دانلود نکن
+
+      - name: Normalize structure (optional)
+        run: |
+          # اگر سایت ریشه‌اش داخل پوشه‌ای با نام دامنه است، می‌توانی اینجا جابجایش کنی
+          cd public
+          # مثال: اگر wget فولدری مثل "example.com" ساخته:
+          # ls
+          # mv example.com/* .
+          # rmdir example.com
+          # این قسمت را وقتی مطمئن شدی ساختار خروجی چطوره، تنظیم کن
+
+      - name: Setup Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit & push to gh-pages
+        run: |
+          # برنچ gh-pages را به صورت یک worktree جدا نگه می‌داریم
+          git fetch origin gh-pages || true
+
+          # اگر gh-pages وجود ندارد، بسازش
+          if git show-ref --quiet refs/heads/gh-pages; then
+            echo "gh-pages branch exists"
+          else
+            echo "Creating gh-pages branch"
+            git checkout --orphan gh-pages
+            git reset --hard
+            git commit --allow-empty -m "Initialize gh-pages"
+            git push origin gh-pages
+            git checkout -
+          fi
+
+          # استفاده از worktree برای مدیریت راحت‌تر
+          rm -rf gh-pages-worktree
+          git worktree add gh-pages-worktree gh-pages
+
+          # پاک کردن محتویات قبلی gh-pages و کپی محتوای جدید
+          rm -rf gh-pages-worktree/*
+          cp -R public/* gh-pages-worktree/
+
+          cd gh-pages-worktree
+          touch .nojekyll   # برای جلوگیری از پردازش Jekyll
+          git add --all
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update site from ${{ github.event.inputs.site_url }}"
+            git push origin gh-pages
+          fi
+
+    # در نهایت باید GitHub Pages را روی برنچ gh-pages ست کنی:
+    # Settings -> Pages -> Deploy from branch -> gh-pages / (root)
