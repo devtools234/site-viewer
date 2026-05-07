@@ -27,12 +27,8 @@ jobs:
       - name: Download site with wget
         run: |
           cd public
-          wget \
-            --mirror \
-            --convert-links \
-            --adjust-extension \
-            --page-requisites \
-            --no-parent \
+          wget -r -l 4 -k -p -E --no-parent --reject=mp4,zip,rar,exe --quota=250m --timeout=10 --tries=3
+
             "${{ github.event.inputs.site_url }}"
         # توضیح:
         # --mirror           : مثل mirror کامل سایت
