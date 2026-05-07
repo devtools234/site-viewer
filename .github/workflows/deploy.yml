@@ -27,7 +27,7 @@ jobs:
       - name: Download site with wget
         run: |
           cd public
-          wget --page-requisites --convert-links --no-parent --adjust-extension --span-hosts --domains=example.com -E --no-follow-tags=a -k -p  "${{ github.event.inputs.site_url }}"
+          wget -p -k -E --no-parent "${{ github.event.inputs.site_url }}"
         # توضیح:
         # --mirror           : مثل mirror کامل سایت
         # --convert-links    : تبدیل لینک‌ها به لینک‌های لوکال
