@@ -27,7 +27,7 @@ jobs:
       - name: Download site with wget
         run: |
           cd public
-          wget -l1 --convert-links --adjust-extension --page-requisites --no-parent "${{ github.event.inputs.site_url }}"
+          wget -l1 --convert-links --adjust-extension --page-requisites --no-parent "${{ github.event.inputs.site_url }}" || true
         # توضیح:
         # --mirror           : مثل mirror کامل سایت
         # --convert-links    : تبدیل لینک‌ها به لینک‌های لوکال
